@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redirect API calls to Laravel index.php
+    RewriteCond %{REQUEST_URI} ^/api/
+    RewriteRule ^api/(.*)$ index.php [L,QSA]
+
+    # Laravel routing for other routes
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signing you in…</title>
+  <style>
+    body { margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: sans-serif; background: #f7f9ff; flex-direction: column; gap: 16px; }
+    .spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: #2f59f4; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    p { color: #4b5b83; font-size: 14px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="spinner"></div>
+  <p>Signing you in…</p>
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const token    = params.get('token');
+      const user     = params.get('user');
+      // After login, send users into the app (was '/', now '/app')
+      const redirect = params.get('redirect') || '/app';
+
+      if (token) {
+        localStorage.setItem('access_token', token);
+        if (user) {
+          try { localStorage.setItem('user', decodeURIComponent(user)); } catch (e) {}
+        }
+      }
+
+      setTimeout(function () {
+        window.location.replace(redirect);
+      }, 300);
+    })();
+  </script>
+</body>
+</html>

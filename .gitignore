@@ -1,0 +1,6 @@
+.env
+.env.*
+.claude/
+newfolder/
+file.txt
+index.py

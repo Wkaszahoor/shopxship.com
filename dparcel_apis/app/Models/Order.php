@@ -1,0 +1,118 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Model;
+
+class Order extends Model
+{
+    protected $fillable = [
+        'user_id',
+        'shipping_type_id',
+        'ship_from_country_id',
+        'ship_from_state_id',
+        'ship_from_city_id',
+        'ship_to_country_id',
+        'ship_to_state_id',
+        'ship_to_city_id',
+        'total_aprox_weight',
+        'total_price',
+        'stripe_fee',
+        'service_fee',
+        'grand_total',
+        'tracking_number',
+        'request_number',
+        'tracking_link',
+        'status',
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($order) {
+            do {
+                $requestNumber = 'REQ-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
+            } while (Order::where('request_number', $requestNumber)->exists());
+
+            $order->request_number = $requestNumber;
+        });
+    }
+
+
+    public function orderDetails()
+    {
+        return $this->hasMany(OrderDetail::class);
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function offers()
+    {
+        return $this->hasMany(OrderOffer::class, 'order_id', 'id');
+    }
+    public function acceptedOffer()
+    {
+        return $this->hasOne(OrderOffer::class)->where('status', 'accepted');
+    }
+    public function orderPayment()
+    {
+        return $this->hasOne(OrderPayment::class, 'order_id', 'id');
+    }
+    public function orderServices()
+    {
+        return $this->hasMany(OrderService::class);
+    }
+    public function orderTrackings()
+    {
+        return $this->hasMany(OrderTracking::class);
+    }
+    public function orderStatus()
+    {
+        return $this->belongsTo(OrderStatus::class, 'status', 'id');
+    }
+    public function shipFromCountry()
+    {
+        return $this->belongsTo(Country::class, 'ship_from_country_id');
+    }
+
+    public function shipFromState()
+    {
+        return $this->belongsTo(State::class, 'ship_from_state_id');
+    }
+
+    public function shipFromCity()
+    {
+        return $this->belongsTo(City::class, 'ship_from_city_id');
+    }
+
+    public function shipToCountry()
+    {
+        return $this->belongsTo(Country::class, 'ship_to_country_id');
+    }
+
+    public function shipToState()
+    {
+        return $this->belongsTo(State::class, 'ship_to_state_id');
+    }
+
+    public function shipToCity()
+    {
+        return $this->belongsTo(City::class, 'ship_to_city_id');
+    }
+
+    public function customDeclaration()
+    {
+        return $this->hasOne(CustomDeclaration::class, 'order_id','id');
+    }
+    public function messages()
+    {
+        return $this->hasMany(OrderMessage::class, 'order_id');
+    }
+    public function shippingType()
+    {
+        return $this->belongsTo(ShippingType::class, 'shipping_type_id');
+    }
+}

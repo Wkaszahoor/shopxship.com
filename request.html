@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>New Request — ShopxShip</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1728;--surface:#1a2231;--surface-2:#1e2a3d;--border:#2d3c52;
+  --brand:#465fff;--brand-hover:#3641f5;--brand-soft:#1c2a5e;
+  --text:#f1f5f9;--text-muted:#94a3b8;--text-dim:#64748b;
+  --success:#12b76a;--error:#f04438;--warning:#f79009;
+  --radius:10px;--radius-lg:14px;--radius-xl:20px;
+}
+html,body{min-height:100vh;background:var(--bg);font-family:'Outfit',system-ui,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+#root{min-height:100vh}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="env,react">
+const {useState} = React;
+
+/* ── icons ── */
+const Icon = ({d,size=18,stroke=2,fill="none",color="currentColor"}) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
+    <path d={d}/>
+  </svg>
+);
+const icons = {
+  box:    "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z",
+  link:   "M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71",
+  tag:    "M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7h.01",
+  globe:  "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z",
+  truck:  "M1 3h15v13H1zM16 8h4l3 3v5h-7V8zM5.5 21a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM18.5 21a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z",
+  dollar: "M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
+  check:  "M20 6L9 17l-5-5",
+  arrow:  "M19 12H5M12 5l-7 7 7 7",
+  plus:   "M12 5v14M5 12h14",
+  x:      "M18 6L6 18M6 6l12 12",
+  info:   "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 16v-4M12 8h.01",
+  shop:   "M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0",
+  trash:  "M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2",
+  copy:   "M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-4-4H8zM14 2v6h6M16 13H8M16 17H8M10 9H8",
+  chevron:"M6 9l6 6 6-6",
+};
+
+/* ── shared primitives ── */
+const inputBase = (focused, err) => ({
+  width:"100%", padding:"11px 14px",
+  background:"var(--surface-2)",
+  border:`1.5px solid ${err?"var(--error)":focused?"var(--brand)":"var(--border)"}`,
+  borderRadius:"var(--radius)", color:"var(--text)",
+  fontSize:14, fontFamily:"inherit", outline:"none",
+  transition:"border-color 0.15s, box-shadow 0.15s",
+  boxShadow: focused&&!err ? "0 0 0 3px rgba(70,95,255,0.15)" : "none",
+});
+
+const Input = ({icon,value,onChange,placeholder,type="text",error,min,step,disabled}) => {
+  const [f,setF] = useState(false);
+  return (
+    <div style={{position:"relative"}}>
+      {icon&&<span style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",color:"var(--text-dim)",pointerEvents:"none"}}>
+        <Icon d={icons[icon]} size={15}/>
+      </span>}
+      <input type={type} value={value} onChange={e=>onChange(e.target.value)}
+        placeholder={placeholder} min={min} step={step} disabled={disabled}
+        onFocus={()=>setF(true)} onBlur={()=>setF(false)}
+        style={{...inputBase(f,error), paddingLeft:icon?38:14, opacity:disabled?0.5:1, cursor:disabled?"not-allowed":"text"}}/>
+    </div>
+  );
+};
+
+const Textarea = ({value,onChange,placeholder,rows=3,error}) => {
+  const [f,setF]=useState(false);
+  return (
+    <textarea value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} rows={rows}
+      onFocus={()=>setF(true)} onBlur={()=>setF(false)}
+      style={{...inputBase(f,error), resize:"vertical", minHeight:rows*24+20, fontFamily:"inherit"}}/>
+  );
+};
+
+const Select = ({value,onChange,options,error}) => {
+  const [f,setF]=useState(false);
+  return (
+    <select value={value} onChange={e=>onChange(e.target.value)}
+      onFocus={()=>setF(true)} onBlur={()=>setF(false)}
+      style={{...inputBase(f,error), cursor:"pointer", appearance:"none", paddingRight:32,
+        backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+        backgroundRepeat:"no-repeat", backgroundPosition:"right 12px center"}}>
+      {options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
+    </select>
+  );
+};
+
+const Field = ({label,required,hint,error,children}) => (
+  <div style={{display:"flex",flexDirection:"column",gap:6}}>
+    <label style={{fontSize:12,fontWeight:600,color:"var(--text-muted)",letterSpacing:"0.05em",textTransform:"uppercase"}}>
+      {label}{required&&<span style={{color:"var(--error)",marginLeft:3}}>*</span>}
+    </label>
+    {children}
+    {hint&&!error&&<span style={{fontSize:11,color:"var(--text-dim)"}}>{hint}</span>}
+    {error&&<span style={{fontSize:11,color:"var(--error)",display:"flex",alignItems:"center",gap:4}}>
+      <Icon d={icons.x} size={11} color="var(--error)"/> {error}
+    </span>}
+  </div>
+);
+
+const ServiceCard = ({id,icon,title,desc,selected,onSelect}) => (
+  <div onClick={()=>onSelect(id)} style={{
+    flex:1, minWidth:130, padding:16, cursor:"pointer", position:"relative",
+    border:`1.5px solid ${selected?"var(--brand)":"var(--border)"}`,
+    borderRadius:"var(--radius-lg)",
+    background: selected?"var(--brand-soft)":"var(--surface-2)",
+    transition:"all 0.15s",
+  }}>
+    <div style={{width:34,height:34,borderRadius:9,marginBottom:10,
+      background:selected?"var(--brand)":"var(--surface)",
+      display:"flex",alignItems:"center",justifyContent:"center",transition:"background 0.15s"}}>
+      <Icon d={icons[icon]} size={16} color={selected?"#fff":"var(--text-muted)"}/>
+    </div>
+    <div style={{fontSize:13,fontWeight:600,marginBottom:2,color:selected?"var(--text)":"var(--text-muted)"}}>{title}</div>
+    <div style={{fontSize:11,color:"var(--text-dim)",lineHeight:1.4}}>{desc}</div>
+    {selected&&<div style={{position:"absolute",top:9,right:9,width:17,height:17,borderRadius:"50%",
+      background:"var(--brand)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <Icon d={icons.check} size={9} color="#fff" stroke={3}/>
+    </div>}
+  </div>
+);
+
+const Steps = ({current,steps}) => (
+  <div style={{display:"flex",alignItems:"center",marginBottom:28}}>
+    {steps.map((s,i)=>(
+      <React.Fragment key={i}>
+        <div style={{display:"flex",alignItems:"center",gap:7}}>
+          <div style={{width:26,height:26,borderRadius:"50%",flexShrink:0,fontSize:11,fontWeight:700,color:"#fff",
+            display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.3s",
+            background:i<current?"var(--success)":i===current?"var(--brand)":"var(--surface-2)",
+            border:`1.5px solid ${i<current?"var(--success)":i===current?"var(--brand)":"var(--border)"}`,
+          }}>
+            {i<current?<Icon d={icons.check} size={11} color="#fff" stroke={3}/>:i+1}
+          </div>
+          <span style={{fontSize:12,fontWeight:600,whiteSpace:"nowrap",
+            color:i===current?"var(--text)":i<current?"var(--success)":"var(--text-dim)"}}>
+            {s}
+          </span>
+        </div>
+        {i<steps.length-1&&<div style={{flex:1,height:1,margin:"0 8px",transition:"background 0.3s",
+          background:i<current?"var(--success)":"var(--border)"}}/>}
+      </React.Fragment>
+    ))}
+  </div>
+);
+
+const Toast = ({msg,type,onClose}) => {
+  const c = {success:"var(--success)",error:"var(--error)",info:"var(--brand)"}[type];
+  return (
+    <div style={{position:"fixed",top:20,right:20,zIndex:9999,animation:"slideIn 0.3s ease",
+      background:"var(--surface-2)",border:`1px solid ${c}`,borderLeft:`4px solid ${c}`,
+      borderRadius:"var(--radius)",padding:"13px 16px",display:"flex",alignItems:"center",gap:10,
+      boxShadow:"0 8px 32px rgba(0,0,0,0.4)",minWidth:250,maxWidth:340}}>
+      <Icon d={type==="success"?icons.check:type==="error"?icons.x:icons.info} size={16} color={c}/>
+      <span style={{flex:1,fontSize:13,fontWeight:500}}>{msg}</span>
+      <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text-dim)",padding:2}}>
+        <Icon d={icons.x} size={13} color="var(--text-dim)"/>
+      </button>
+    </div>
+  );
+};
+
+const SummaryRow = ({label,value,accent}) => (
+  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"9px 0",borderBottom:"1px solid var(--border)"}}>
+    <span style={{fontSize:12,color:"var(--text-dim)",fontWeight:500,flexShrink:0,marginRight:12}}>{label}</span>
+    <span style={{fontSize:13,color:accent?"var(--brand)":"var(--text)",fontWeight:600,textAlign:"right",wordBreak:"break-word"}}>{value||"—"}</span>
+  </div>
+);
+
+/* ── blank product template ── */
+const blankProduct = () => ({
+  id: Date.now()+Math.random(),
+  productUrl:"", storeName:"", productName:"", productDesc:"",
+  quantity:1, color:"", size:"", targetPrice:"", currency:"USD",
+});
+
+/* ══════════════ MAIN ══════════════ */
+function RequestPage() {
+  const [step, setStep]           = useState(0);
+  const [toast, setToast]         = useState(null);
+  const [submitting,setSubmitting] = useState(false);
+  const [submitted, setSubmitted]  = useState(false);
+  const [expanded, setExpanded]    = useState({0:true}); // which product cards are open
+
+  const [form, setForm] = useState({
+    serviceType: "shop",
+    priority:    "standard",
+    products:    [blankProduct()],
+    country:"", city:"", postalCode:"", address:"", notes:"",
+  });
+  const [errors, setErrors] = useState({});
+
+  const setF = (k,v) => { setForm(f=>({...f,[k]:v})); if(errors[k]) setErrors(e=>({...e,[k]:null})); };
+
+  const showToast = (msg,type="info") => { setToast({msg,type}); setTimeout(()=>setToast(null),4000); };
+
+  /* product helpers */
+  const addProduct = () => {
+    const np = blankProduct();
+    setForm(f=>({...f,products:[...f.products,np]}));
+    setExpanded(e=>({...e,[f=>f.products.length]:true}));
+    setTimeout(()=>setExpanded(e=>({...e,[form.products.length]:true})),10);
+  };
+  const removeProduct = (id) => {
+    if(form.products.length===1){showToast("At least one product is required","error");return;}
+    setForm(f=>({...f,products:f.products.filter(p=>p.id!==id)}));
+  };
+  const duplicateProduct = (p) => {
+    const np = {...p, id:Date.now()+Math.random()};
+    setForm(f=>({...f,products:[...f.products,np]}));
+    showToast("Product duplicated","info");
+  };
+  const updateProduct = (id,k,v) => {
+    setForm(f=>({...f,products:f.products.map(p=>p.id===id?{...p,[k]:v}:p)}));
+    if(errors["products_"+id+"_"+k]) setErrors(e=>({...e,["products_"+id+"_"+k]:null}));
+  };
+  const toggleExpand = (id) => setExpanded(e=>({...e,[id]:!e[id]}));
+
+  const currencies = [
+    {value:"USD",label:"USD ($)"},{value:"EUR",label:"EUR (€)"},
+    {value:"GBP",label:"GBP (£)"},{value:"PKR",label:"PKR (₨)"},
+    {value:"AED",label:"AED (د.إ)"},{value:"SAR",label:"SAR (﷼)"},
+  ];
+
+  const countries = [
+    {value:"",label:"Select country…"},
+    {value:"PK",label:"🇵🇰 Pakistan"},{value:"NG",label:"🇳🇬 Nigeria"},
+    {value:"KE",label:"🇰🇪 Kenya"},{value:"ZA",label:"🇿🇦 South Africa"},
+    {value:"EG",label:"🇪🇬 Egypt"},{value:"AE",label:"🇦🇪 United Arab Emirates"},
+    {value:"SA",label:"🇸🇦 Saudi Arabia"},{value:"GH",label:"🇬🇭 Ghana"},
+    {value:"MA",label:"🇲🇦 Morocco"},{value:"BD",label:"🇧🇩 Bangladesh"},
+    {value:"IN",label:"🇮🇳 India"},{value:"PH",label:"🇵🇭 Philippines"},
+    {value:"MY",label:"🇲🇾 Malaysia"},{value:"ID",label:"🇮🇩 Indonesia"},
+    {value:"TR",label:"🇹🇷 Turkey"},
+  ];
+
+  const STEPS = ["Service","Products","Delivery","Review"];
+
+  const validate = (s) => {
+    const e = {};
+    if(s===1){
+      form.products.forEach(p=>{
+        if(!p.productName.trim()) e["products_"+p.id+"_productName"]="Product name required";
+        if(!p.productUrl.trim()) e["products_"+p.id+"_productUrl"]="URL required";
+        else if(!/^https?:\/\//i.test(p.productUrl)) e["products_"+p.id+"_productUrl"]="Must start with https://";
+        if(p.quantity<1) e["products_"+p.id+"_quantity"]="Min 1";
+      });
+    }
+    if(s===2){
+      if(!form.country) e.country="Country required";
+      if(!form.city.trim()) e.city="City required";
+    }
+    return e;
+  };
+
+  const next = () => {
+    const e = validate(step);
+    if(Object.keys(e).length){
+      setErrors(e);
+      // open all products with errors
+      const errIds = Object.keys(e).filter(k=>k.startsWith("products_")).map(k=>k.split("_")[1]);
+      setExpanded(ex=>{ const n={...ex}; errIds.forEach(id=>n[id]=true); return n; });
+      showToast("Please fix the errors below","error");
+      return;
+    }
+    setStep(s=>s+1); window.scrollTo({top:0,behavior:"smooth"});
+  };
+  const back = () => { setStep(s=>s-1); window.scrollTo({top:0,behavior:"smooth"}); };
+
+  const submit = async () => {
+    setSubmitting(true);
+    await new Promise(r=>setTimeout(r,1800));
+    setSubmitting(false); setSubmitted(true);
+  };
+
+  const reset = () => {
+    setSubmitted(false); setStep(0);
+    setForm({serviceType:"shop",priority:"standard",products:[blankProduct()],country:"",city:"",postalCode:"",address:"",notes:""});
+    setExpanded({0:true});
+  };
+
+  /* ── success ── */
+  if(submitted) return (
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+      <div style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"var(--radius-xl)",padding:44,maxWidth:460,width:"100%",textAlign:"center"}}>
+        <div style={{width:68,height:68,borderRadius:"50%",background:"rgba(18,183,106,0.12)",border:"2px solid var(--success)",
+          display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px"}}>
+          <Icon d={icons.check} size={30} color="var(--success)" stroke={2.5}/>
+        </div>
+        <h2 style={{fontSize:21,fontWeight:700,marginBottom:8}}>Request Submitted!</h2>
+        <p style={{color:"var(--text-muted)",fontSize:14,lineHeight:1.6,marginBottom:24}}>
+          {form.products.length} product{form.products.length>1?"s":""} added to your request. Our team will reach out within <strong style={{color:"var(--text)"}}>24 hours</strong> with a quote.
+        </p>
+        <div style={{background:"var(--surface-2)",borderRadius:"var(--radius-lg)",padding:"14px 18px",marginBottom:24,textAlign:"left"}}>
+          <SummaryRow label="Request ID" value={"#REQ-"+Math.floor(Math.random()*90000+10000)} accent/>
+          <SummaryRow label="Service" value={form.serviceType==="shop"?"Shop For Me":form.serviceType==="buy"?"Buy For Me":"Consolidate"}/>
+          <SummaryRow label="Products" value={form.products.length+" item"+(form.products.length>1?"s":"")}/>
+          <SummaryRow label="Destination" value={countries.find(c=>c.value===form.country)?.label?.replace(/^..\s/,"")}/>
+        </div>
+        <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+          <a href="/shopper/requests" style={{padding:"11px 20px",borderRadius:999,background:"var(--brand)",color:"#fff",
+            textDecoration:"none",fontSize:14,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6}}>
+            <Icon d={icons.box} size={14} color="#fff"/> My Requests
+          </a>
+          <button onClick={reset} style={{padding:"11px 20px",borderRadius:999,background:"transparent",
+            color:"var(--text-muted)",border:"1.5px solid var(--border)",fontSize:14,fontWeight:600,cursor:"pointer",
+            display:"inline-flex",alignItems:"center",gap:6}}>
+            <Icon d={icons.plus} size={14}/> New Request
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column"}}>
+      <style>{`
+        @keyframes slideIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+        input:focus,select:focus,textarea:focus{outline:none}
+        select option{background:#1e2a3d;color:#f1f5f9}
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--surface)}
+        ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+      `}</style>
+
+      {/* nav */}
+      <nav style={{display:"flex",alignItems:"center",justifyContent:"space-between",
+        padding:"13px 24px",background:"var(--surface)",borderBottom:"1px solid var(--border)",
+        position:"sticky",top:0,zIndex:100}}>
+        <a href="/shopper/dashboard" style={{display:"flex",alignItems:"center",gap:7,textDecoration:"none",
+          color:"var(--text-muted)",fontSize:13,fontWeight:500,transition:"color 0.15s"}}
+          onMouseEnter={e=>e.currentTarget.style.color="var(--text)"}
+          onMouseLeave={e=>e.currentTarget.style.color="var(--text-muted)"}>
+          <Icon d={icons.arrow} size={14}/> Dashboard
+        </a>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <div style={{width:28,height:28,borderRadius:7,background:"var(--brand)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <Icon d={icons.box} size={15} color="#fff"/>
+          </div>
+          <span style={{fontWeight:700,fontSize:14}}>ShopxShip</span>
+        </div>
+        <div style={{fontSize:12,color:"var(--text-dim)"}}>Step {step+1}/{STEPS.length}</div>
+      </nav>
+
+      <div style={{flex:1,padding:"28px 24px",maxWidth:780,margin:"0 auto",width:"100%"}}>
+        <div style={{marginBottom:24,animation:"fadeUp 0.4s ease"}}>
+          <h1 style={{fontSize:22,fontWeight:700,marginBottom:3}}>New Order Request</h1>
+          <p style={{color:"var(--text-muted)",fontSize:13}}>Add one or more products — we'll shop and ship them to your door.</p>
+        </div>
+
+        <Steps current={step} steps={STEPS}/>
+
+        {/* ── STEP 0: SERVICE ── */}
+        {step===0&&(
+          <div style={{animation:"fadeUp 0.3s ease",display:"flex",flexDirection:"column",gap:14}}>
+            <div style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"var(--radius-xl)",padding:24}}>
+              <h3 style={{fontSize:14,fontWeight:600,marginBottom:4}}>Service Type</h3>
+              <p style={{fontSize:12,color:"var(--text-muted)",marginBottom:16}}>How would you like us to help?</p>
+              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                <ServiceCard id="shop" icon="shop" title="Shop For Me" desc="I have a link — just buy it" selected={form.serviceType==="shop"} onSelect={v=>setF("serviceType",v)}/>
+                <ServiceCard id="buy" icon="tag" title="Buy For Me" desc="Find the best deal on a product" selected={form.serviceType==="buy"} onSelect={v=>setF("serviceType",v)}/>
+                <ServiceCard id="consolidate" icon="box" title="Consolidate" desc="Merge multiple packages into one" selected={form.serviceType==="consolidate"} onSelect={v=>setF("serviceType",v)}/>
+              </div>
+            </div>
+
+            <div style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"var(--radius-xl)",padding:24}}>
+              <h3 style={{fontSize:14,fontWeight:600,marginBottom:4}}>Priority</h3>
+              <p style={{fontSize:12,color:"var(--text-muted)",marginBottom:14}}>How urgently do you need this?</p>
+              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                {[
+                  {id:"standard",label:"Standard",color:"var(--text-muted)"},
+                  {id:"express", label:"Express", color:"var(--warning)"},
+                  {id:"urgent",  label:"Urgent",  color:"var(--error)"},
+                ].map(p=>(
+                  <div key={p.id} onClick={()=>setF("priority",p.id)} style={{
+                    flex:1,minWidth:100,padding:"11px 14px",cursor:"pointer",borderRadius:"var(--radius-lg)",
+                    border:`1.5px solid ${form.priority===p.id?p.color:"var(--border)"}`,
+                    background:form.priority===p.id?p.color+"14":"var(--surface-2)",
+                    transition:"all 0.15s",display:"flex",alignItems:"center",gap:8,
+                  }}>
+                    <div style={{width:8,height:8,borderRadius:"50%",background:p.color,flexShrink:0}}/>
+                    <span style={{fontSize:13,fontWeight:600,color:form.priority===p.id?p.color:"var(--text-muted)"}}>{p.label}</span>
+                    {form.priority===p.id&&<div style={{marginLeft:"auto"}}>
+                      <Icon d={icons.check} size={13} color={p.color} stroke={2.5}/>
+                    </div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 1: PRODUCTS ── */}
+        {step===1&&(
+          <div style={{animation:"fadeUp 0.3s ease",display:"flex",flexDirection:"column",gap:12}}>
+            {/* product count badge */}
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+              <span style={{fontSize:13,color:"var(--text-muted)",fontWeight:500}}>
+                {form.products.length} product{form.products.length>1?"s":""} added
+              </span>
+              <button onClick={addProduct} style={{
+                display:"flex",alignItems:"center",gap:6,padding:"8px 14px",borderRadius:999,
+                background:"var(--brand-soft)",border:"1.5px solid var(--brand)",
+                color:"var(--brand)",fontSize:13,fontWeight:600,cursor:"pointer",transition:"all 0.15s"
+              }}
+                onMouseEnter={e=>e.currentTarget.style.background="var(--brand)"}
+                onMouseLeave={e=>e.currentTarget.style.background="var(--brand-soft)"}>
+                <Icon d={icons.plus} size={13} color="inherit"/> Add Product
+              </button>
+            </div>
+
+            {form.products.map((p,idx)=>{
+              const isOpen = expanded[p.id]!==false;
+              const hasErr = Object.keys(errors).some(k=>k.includes(p.id));
+              return (
+                <div key={p.id} style={{
+                  background:"var(--surface)",border:`1px solid ${hasErr?"var(--error)":"var(--border)"}`,
+                  borderRadius:"var(--radius-xl)",overflow:"hidden",transition:"border-color 0.2s",
+                }}>
+                  {/* card header */}
+                  <div onClick={()=>toggleExpand(p.id)} style={{
+                    display:"flex",alignItems:"center",gap:12,padding:"14px 18px",cursor:"pointer",
+                    background:"var(--surface)",borderBottom:isOpen?"1px solid var(--border)":"none",
+                    userSelect:"none",
+                  }}>
+                    <div style={{width:28,height:28,borderRadius:8,flexShrink:0,
+                      background: p.productName ? "var(--brand-soft)" : "var(--surface-2)",
+                      border:`1px solid ${p.productName?"var(--brand)":"var(--border)"}`,
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      fontSize:11,fontWeight:700,color:p.productName?"var(--brand)":"var(--text-dim)"}}>
+                      {idx+1}
+                    </div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:13,fontWeight:600,color:p.productName?"var(--text)":"var(--text-muted)",
+                        whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                        {p.productName||"Untitled Product"}
+                      </div>
+                      {p.storeName&&<div style={{fontSize:11,color:"var(--text-dim)",marginTop:1}}>{p.storeName}</div>}
+                    </div>
+                    {p.quantity>1&&<span style={{fontSize:11,padding:"2px 8px",borderRadius:999,
+                      background:"var(--surface-2)",border:"1px solid var(--border)",color:"var(--text-muted)",flexShrink:0}}>
+                      ×{p.quantity}
+                    </span>}
+                    {hasErr&&<span style={{width:7,height:7,borderRadius:"50%",background:"var(--error)",flexShrink:0}}/>}
+                    <div style={{display:"flex",gap:6,flexShrink:0}} onClick={e=>e.stopPropagation()}>
+                      <button onClick={()=>duplicateProduct(p)} title="Duplicate" style={{
+                        width:28,height:28,borderRadius:7,border:"1px solid var(--border)",
+                        background:"var(--surface-2)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
+                        color:"var(--text-dim)",transition:"all 0.15s"}}
+                        onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--brand)";e.currentTarget.style.color="var(--brand)";}}
+                        onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.color="var(--text-dim)";}}>
+                        <Icon d={icons.copy} size={12}/>
+                      </button>
+                      <button onClick={()=>removeProduct(p.id)} title="Remove" style={{
+                        width:28,height:28,borderRadius:7,border:"1px solid var(--border)",
+                        background:"var(--surface-2)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
+                        color:"var(--text-dim)",transition:"all 0.15s"}}
+                        onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--error)";e.currentTarget.style.color="var(--error)";}}
+                        onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.color="var(--text-dim)";}}>
+                        <Icon d={icons.trash} size={12}/>
+                      </button>
+                    </div>
+                    <div style={{color:"var(--text-dim)",transform:isOpen?"rotate(180deg)":"rotate(0deg)",transition:"transform 0.2s",flexShrink:0}}>
+                      <Icon d={icons.chevron} size={14}/>
+                    </div>
+                  </div>
+
+                  {/* card body */}
+                  {isOpen&&(
+                    <div style={{padding:20,display:"flex",flexDirection:"column",gap:16}}>
+                      <div style={{display:"flex",flexDirection:"column",gap:14}}>
+                        <Field label="Product Name" required error={errors["products_"+p.id+"_productName"]}>
+                          <Input icon="tag" value={p.productName} onChange={v=>updateProduct(p.id,"productName",v)}
+                            placeholder="e.g. Nike Air Max 270 White" error={errors["products_"+p.id+"_productName"]}/>
+                        </Field>
+                        <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:12}}>
+                          <Field label="Product URL" required error={errors["products_"+p.id+"_productUrl"]}>
+                            <Input icon="link" value={p.productUrl} onChange={v=>updateProduct(p.id,"productUrl",v)}
+                              placeholder="https://amazon.com/dp/..." error={errors["products_"+p.id+"_productUrl"]}/>
+                          </Field>
+                          <Field label="Store">
+                            <Input icon="shop" value={p.storeName} onChange={v=>updateProduct(p.id,"storeName",v)} placeholder="Amazon, ASOS…"/>
+                          </Field>
+                        </div>
+                        <Field label="Description" hint="Color, size, model number, specifications">
+                          <Textarea value={p.productDesc} onChange={v=>updateProduct(p.id,"productDesc",v)}
+                            placeholder="Any specific details (color, variant, model)…" rows={2}/>
+                        </Field>
+                      </div>
+
+                      <div style={{height:1,background:"var(--border)"}}/>
+
+                      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12}}>
+                        <Field label="Quantity" required error={errors["products_"+p.id+"_quantity"]}>
+                          <Input type="number" value={p.quantity} onChange={v=>updateProduct(p.id,"quantity",v)} placeholder="1" min={1} error={errors["products_"+p.id+"_quantity"]}/>
+                        </Field>
+                        <Field label="Color / Variant">
+                          <Input value={p.color} onChange={v=>updateProduct(p.id,"color",v)} placeholder="e.g. Black"/>
+                        </Field>
+                        <Field label="Size">
+                          <Input value={p.size} onChange={v=>updateProduct(p.id,"size",v)} placeholder="e.g. XL, 42"/>
+                        </Field>
+                        <Field label="Target Price">
+                          <Input icon="dollar" type="number" value={p.targetPrice} onChange={v=>updateProduct(p.id,"targetPrice",v)} placeholder="0.00" step="0.01"/>
+                        </Field>
+                        <Field label="Currency">
+                          <Select value={p.currency} onChange={v=>updateProduct(p.id,"currency",v)} options={currencies}/>
+                        </Field>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* add more button at bottom */}
+            <button onClick={addProduct} style={{
+              width:"100%",padding:"13px",borderRadius:"var(--radius-lg)",
+              border:"1.5px dashed var(--border)",background:"transparent",
+              color:"var(--text-dim)",fontSize:13,fontWeight:500,cursor:"pointer",
+              display:"flex",alignItems:"center",justifyContent:"center",gap:7,
+              transition:"all 0.15s",
+            }}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--brand)";e.currentTarget.style.color="var(--brand)";e.currentTarget.style.background="var(--brand-soft)";}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.color="var(--text-dim)";e.currentTarget.style.background="transparent";}}>
+              <Icon d={icons.plus} size={14}/> Add another product
+            </button>
+          </div>
+        )}
+
+        {/* ── STEP 2: DELIVERY ── */}
+        {step===2&&(
+          <div style={{animation:"fadeUp 0.3s ease",display:"flex",flexDirection:"column",gap:14}}>
+            <div style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"var(--radius-xl)",padding:24}}>
+              <h3 style={{fontSize:14,fontWeight:600,marginBottom:18}}>Delivery Address</h3>
+              <div style={{display:"flex",flexDirection:"column",gap:16}}>
+                <Field label="Country" required error={errors.country}>
+                  <Select value={form.country} onChange={v=>setF("country",v)} options={countries} error={errors.country}/>
+                </Field>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+                  <Field label="City" required error={errors.city}>
+                    <Input icon="globe" value={form.city} onChange={v=>setF("city",v)} placeholder="e.g. Karachi, Lagos" error={errors.city}/>
+                  </Field>
+                  <Field label="Postal Code">
+                    <Input value={form.postalCode} onChange={v=>setF("postalCode",v)} placeholder="e.g. 75500"/>
+                  </Field>
+                </div>
+                <Field label="Full Address" hint="Street, building, apartment number">
+                  <Textarea value={form.address} onChange={v=>setF("address",v)} placeholder="House 12, Block B, Gulshan-e-Iqbal…" rows={3}/>
+                </Field>
+              </div>
+            </div>
+
+            <div style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"var(--radius-xl)",padding:24}}>
+              <h3 style={{fontSize:14,fontWeight:600,marginBottom:14}}>Additional Notes</h3>
+              <Field label="Special Instructions" hint="Gift wrapping, fragile item, any other details">
+                <Textarea value={form.notes} onChange={v=>setF("notes",v)} placeholder="Anything our team should know…" rows={3}/>
+              </Field>
+            </div>
+
+            <div style={{background:"var(--brand-soft)",border:"1px solid rgba(70,95,255,0.3)",borderRadius:"var(--radius-lg)",
+              padding:"14px 18px",display:"flex",gap:12,alignItems:"flex-start"}}>
+              <Icon d={icons.truck} size={17} color="var(--brand)"/>
+              <div>
+                <div style={{fontSize:13,fontWeight:600,color:"var(--brand)",marginBottom:3}}>Shipment Summary</div>
+                <div style={{fontSize:12,color:"var(--text-muted)"}}>
+                  {form.products.length} product{form.products.length>1?"s":""} · {form.serviceType==="shop"?"Shop For Me":form.serviceType==="buy"?"Buy For Me":"Consolidate"} · {form.priority.charAt(0).toUpperCase()+form.priority.slice(1)} priority
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 3: REVIEW ── */}
+        {step===3&&(
+          <div style={{animation:"fadeUp 0.3s ease",display:"flex",flexDirection:"column",gap:14}}>
+            <div style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"var(--radius-xl)",padding:24}}>
+              <h3 style={{fontSize:14,fontWeight:600,marginBottom:18,display:"flex",alignItems:"center",gap:8}}>
+                <Icon d={icons.check} size={15} color="var(--success)"/> Review Your Request
+              </h3>
+
+              <div style={{marginBottom:18}}>
+                <div style={{fontSize:10,fontWeight:700,color:"var(--brand)",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:8}}>Service</div>
+                <SummaryRow label="Type" value={form.serviceType==="shop"?"Shop For Me":form.serviceType==="buy"?"Buy For Me":"Consolidate"}/>
+                <SummaryRow label="Priority" value={form.priority.charAt(0).toUpperCase()+form.priority.slice(1)}/>
+              </div>
+
+              <div style={{marginBottom:18}}>
+                <div style={{fontSize:10,fontWeight:700,color:"var(--brand)",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:8}}>
+                  Products ({form.products.length})
+                </div>
+                {form.products.map((p,i)=>(
+                  <div key={p.id} style={{padding:"10px 12px",background:"var(--surface-2)",borderRadius:"var(--radius)",marginBottom:6,display:"flex",gap:10,alignItems:"center"}}>
+                    <div style={{width:22,height:22,borderRadius:6,background:"var(--brand-soft)",border:"1px solid var(--brand)",
+                      display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:"var(--brand)",flexShrink:0}}>
+                      {i+1}
+                    </div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.productName}</div>
+                      <div style={{fontSize:11,color:"var(--text-dim)",marginTop:1}}>
+                        Qty: {p.quantity}{p.color?` · ${p.color}`:""}{p.size?` · ${p.size}`:""}{p.targetPrice?` · ${p.targetPrice} ${p.currency}`:""}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <div style={{fontSize:10,fontWeight:700,color:"var(--brand)",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:8}}>Delivery</div>
+                <SummaryRow label="Country" value={countries.find(c=>c.value===form.country)?.label?.replace(/^..\s/,"")}/>
+                <SummaryRow label="City" value={form.city}/>
+                {form.address&&<SummaryRow label="Address" value={form.address}/>}
+                {form.notes&&<SummaryRow label="Notes" value={form.notes}/>}
+              </div>
+            </div>
+
+            <div style={{background:"rgba(18,183,106,0.07)",border:"1px solid rgba(18,183,106,0.25)",
+              borderRadius:"var(--radius-lg)",padding:"13px 16px",fontSize:13,color:"var(--success)"}}>
+              <strong>Ready to submit?</strong> We'll send a price quote within 24 hours including product + shipping costs.
+            </div>
+          </div>
+        )}
+
+        {/* nav buttons */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:22,paddingTop:18,borderTop:"1px solid var(--border)"}}>
+          <button onClick={step===0?()=>window.location.href="/shopper/dashboard":back}
+            style={{display:"flex",alignItems:"center",gap:6,padding:"10px 18px",borderRadius:999,
+              background:"transparent",border:"1.5px solid var(--border)",color:"var(--text-muted)",
+              fontSize:13,fontWeight:600,cursor:"pointer",transition:"all 0.15s"}}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--text-muted)";e.currentTarget.style.color="var(--text)";}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.color="var(--text-muted)";}}>
+            <Icon d={icons.arrow} size={13}/> {step===0?"Cancel":"Back"}
+          </button>
+
+          {step<STEPS.length-1?(
+            <button onClick={next} style={{display:"flex",alignItems:"center",gap:6,padding:"10px 22px",borderRadius:999,
+              background:"var(--brand)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",border:"none",transition:"background 0.15s"}}
+              onMouseEnter={e=>e.currentTarget.style.background="var(--brand-hover)"}
+              onMouseLeave={e=>e.currentTarget.style.background="var(--brand)"}>
+              Continue <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          ):(
+            <button onClick={submit} disabled={submitting} style={{display:"flex",alignItems:"center",gap:6,padding:"10px 24px",borderRadius:999,
+              background:submitting?"var(--surface-2)":"var(--brand)",color:submitting?"var(--text-muted)":"#fff",
+              fontSize:13,fontWeight:600,cursor:submitting?"not-allowed":"pointer",border:"none",transition:"all 0.15s"}}>
+              {submitting?(
+                <><svg style={{animation:"spin 0.8s linear infinite"}} width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>Submitting…</>
+              ):(
+                <><Icon d={icons.check} size={13} color="#fff"/>Submit Request</>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {toast&&<Toast msg={toast.msg} type={toast.type} onClose={()=>setToast(null)}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<RequestPage/>);
+</script>
+</body>
+</html>
