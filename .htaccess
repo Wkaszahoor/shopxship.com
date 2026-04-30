@@ -1,10 +1,57 @@
+Options -Indexes
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
-  RewriteRule ^index\.html$ - [L]
+  # ── 1. Let real files and directories pass through ──────────────────────────
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
 
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
+  # ── 2. /app/assets/* → /assets/* (SPA compiled bundles) ────────────────────
+  RewriteRule ^app/assets/(.*)$ assets/$1 [L]
+
+  # ── 3. Marketing pretty URLs ─────────────────────────────────────────────────
+  RewriteRule ^how-it-works/?$   how-it-works.html  [L]
+  RewriteRule ^services/?$       services.html      [L]
+  RewriteRule ^locations/?$      locations.html     [L]
+  RewriteRule ^resources/?$      resources.html     [L]
+  RewriteRule ^request/?$        request.html       [L]
+
+  # ── 4. SPA exact routes → SPA shell ─────────────────────────────────────────
+  RewriteRule ^signin/?$             app/index.html [L]
+  RewriteRule ^signup/?$             app/index.html [L]
+  RewriteRule ^verify/?$             app/index.html [L]
+  RewriteRule ^profile/?$            app/index.html [L]
+  RewriteRule ^payments/?$           app/index.html [L]
+  RewriteRule ^products/?$           app/index.html [L]
+  RewriteRule ^roles/?$              app/index.html [L]
+  RewriteRule ^permissions/?$        app/index.html [L]
+  RewriteRule ^shippers/?$           app/index.html [L]
+  RewriteRule ^shoppers/?$           app/index.html [L]
+  RewriteRule ^blogs/?$              app/index.html [L]
+  RewriteRule ^custom-declaration/?$ app/index.html [L]
+  RewriteRule ^custom/?$             app/index.html [L]
+  RewriteRule ^payment/?$            app/index.html [L]
+
+  # ── 5. SPA prefix routes ─────────────────────────────────────────────────────
+  RewriteRule ^shopper/.*$   app/index.html [L]
+  RewriteRule ^shipper/.*$   app/index.html [L]
+  RewriteRule ^admin/.*$     app/index.html [L]
+  RewriteRule ^view/.*$      app/index.html [L]
+
+  # ── 6. Legacy /app prefix ────────────────────────────────────────────────────
+  RewriteRule ^app/?$        app/index.html [L]
+  RewriteRule ^app/.*$       app/index.html [L]
+
+  # ── 7. Root → marketing landing ──────────────────────────────────────────────
+  RewriteRule ^$             index.html     [L]
+</IfModule>
+
+# ── PHP settings ──────────────────────────────────────────────────────────────
+<IfModule mod_php.c>
+  php_value upload_max_filesize 64M
+  php_value post_max_size 64M
+  php_value memory_limit 256M
+  php_value max_execution_time 120
 </IfModule>

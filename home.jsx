@@ -25,7 +25,7 @@ function HomePage({ tweaks }) {
               International package forwarding company. Get your favorite products delivered from the EU, US, UK or Asia to your doorstep — fast, transparent, no surprise fees.
             </p>
             <div style={{ display: "flex", gap: 12, marginBottom: 36 }}>
-              <a href="http://127.0.0.1:3000/signin" className="dp-btn dp-btn-primary" style={{ padding: "14px 22px", fontSize: 15 }}>
+              <a href="/signin" className="dp-btn dp-btn-primary" style={{ padding: "14px 22px", fontSize: 15 }}>
                 Get started
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
               </a>
@@ -398,7 +398,7 @@ function HomePage({ tweaks }) {
           </h2>
           <p style={{ fontSize: 19, color: "var(--dp-muted)", maxWidth: 540, margin: "0 auto 32px" }}>Get your virtual address in 60 seconds. Free, forever.</p>
           <div style={{ display: "flex", justifyContent: "center", gap: 12 }}>
-            <a href="http://127.0.0.1:3000/signin" className="dp-btn dp-btn-primary" style={{ padding: "16px 26px", fontSize: 16 }}>
+            <a href="/signin" className="dp-btn dp-btn-primary" style={{ padding: "16px 26px", fontSize: 16 }}>
               Start shopping borderless
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
             </a>

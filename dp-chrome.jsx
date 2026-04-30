@@ -72,8 +72,8 @@ function DPSiteNav({ active = "home" }) {
         ))}
       </div>
       <div className="dp-nav-cta">
-        <a href="http://127.0.0.1:3000/signin" className="dp-btn dp-btn-ghost" style={{ padding: "8px 14px" }}>Sign in</a>
-        <a href="http://127.0.0.1:3000/request" className="dp-btn dp-btn-primary" style={{ padding: "9px 16px" }}>
+        <a href="/signin" className="dp-btn dp-btn-ghost" style={{ padding: "8px 14px" }}>Sign in</a>
+        <a href="/request" className="dp-btn dp-btn-primary" style={{ padding: "9px 16px" }}>
           Get an address
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
         </a>
