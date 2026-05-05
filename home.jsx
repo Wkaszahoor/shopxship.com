@@ -109,13 +109,13 @@ function HomePage({ tweaks }) {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8 }}>
             {[
-              ["🇺🇸","USA"],["🇬🇧","UK"],["🇩🇪","Germany"],["🇨🇳","China"],["🇯🇵","Japan"],["🇹🇷","Turkey"],
-              ["🇮🇹","Italy"],["🇫🇷","France"],["🇳🇴","Norway"],["🇩🇰","Denmark"],["🇸🇪","Sweden"],["🇫🇮","Finland"],
-              ["🇳🇱","Netherlands"],["🇧🇪","Belgium"],["🇧🇬","Bulgaria"],["🇷🇸","Serbia"],["🇺🇦","Ukraine"],["🇦🇪","UAE"],
-              ["🇹🇼","Taiwan"],["🇻🇳","Vietnam"],["🇰🇷","Korea"],["🇵🇱","Poland"],["🇪🇸","Spain"],["🇨🇦","Canada"],
-            ].map(([f,n]) => (
+              ["us","USA"],["gb","UK"],["de","Germany"],["cn","China"],["jp","Japan"],["tr","Turkey"],
+              ["it","Italy"],["fr","France"],["no","Norway"],["dk","Denmark"],["se","Sweden"],["fi","Finland"],
+              ["nl","Netherlands"],["be","Belgium"],["bg","Bulgaria"],["rs","Serbia"],["ua","Ukraine"],["ae","UAE"],
+              ["tw","Taiwan"],["vn","Vietnam"],["kr","Korea"],["pl","Poland"],["es","Spain"],["ca","Canada"],
+            ].map(([code,n]) => (
               <div key={n} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "var(--dp-card)", border: "1px solid var(--dp-line)", borderRadius: 10 }}>
-                <span style={{ fontSize: 20 }}>{f}</span>
+                <img src={`https://flagcdn.com/w40/${code}.png`} alt={n} width={24} height={16} style={{ borderRadius: 2, objectFit: "cover", flexShrink: 0 }} loading="lazy" />
                 <span style={{ fontSize: 13 }}>{n}</span>
               </div>
             ))}
@@ -289,7 +289,11 @@ function HomePage({ tweaks }) {
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 28 }}>
               {["Amazon","eBay","Nike","ASOS","SHEIN","Apple","Sephora","Target","Walmart","Macy's","Costco","Best Buy"].map(b => (
-                <div key={b} style={{ padding: "12px 8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, textAlign: "center", fontSize: 12.5, color: "rgba(255,255,255,0.85)", fontFamily: "var(--dp-display)", letterSpacing: "-0.01em" }}>{b}</div>
+                <div key={b} style={{ padding: "10px 8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ background: RETAILER_LOGOS[b] ? RETAILER_LOGOS[b].bg : "#333", borderRadius: 6, padding: "5px 12px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 36 }}>
+                    <img src={RETAILER_LOGOS[b] && RETAILER_LOGOS[b].src} alt={b} height={22} style={{ objectFit: "contain", maxWidth: 80, display: "block", filter: "brightness(0) invert(1)" }} loading="lazy" />
+                  </div>
+                </div>
               ))}
             </div>
             <div style={{ display: "flex", gap: 12 }}>

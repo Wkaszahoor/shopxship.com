@@ -2,14 +2,14 @@
 // Loaded after dp-shared.jsx (which exports DPLogo).
 
 const RECENT_ROUTES = [
-  { from: "🇯🇵 Japan",  to: "🇵🇰 Pakistan", price: "¥11,823" },
-  { from: "🇺🇸 USA",    to: "🇳🇬 Nigeria",  price: "$24" },
-  { from: "🇬🇧 UK",     to: "🇰🇪 Kenya",    price: "£18" },
-  { from: "🇩🇪 Germany",to: "🇦🇪 UAE",      price: "€21" },
-  { from: "🇨🇳 China",  to: "🇪🇬 Egypt",    price: "¥98" },
-  { from: "🇹🇷 Turkey", to: "🇲🇦 Morocco",  price: "₺240" },
-  { from: "🇮🇹 Italy",  to: "🇿🇦 S. Africa",price: "€32" },
-  { from: "🇫🇷 France", to: "🇬🇭 Ghana",    price: "€28" },
+  { from: ["jp","Japan"],   to: ["pk","Pakistan"],  price: "¥11,823" },
+  { from: ["us","USA"],     to: ["ng","Nigeria"],   price: "$24" },
+  { from: ["gb","UK"],      to: ["ke","Kenya"],     price: "£18" },
+  { from: ["de","Germany"], to: ["ae","UAE"],       price: "€21" },
+  { from: ["cn","China"],   to: ["eg","Egypt"],     price: "¥98" },
+  { from: ["tr","Turkey"],  to: ["ma","Morocco"],   price: "₺240" },
+  { from: ["it","Italy"],   to: ["za","S. Africa"], price: "€32" },
+  { from: ["fr","France"],  to: ["gh","Ghana"],     price: "€28" },
 ];
 
 function DPTopBar() {
@@ -27,10 +27,12 @@ function DPTopBar() {
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "nowrap", whiteSpace: "nowrap", minWidth: 0, overflow: "hidden" }}>
         <span style={{ opacity: 0.55, whiteSpace: "nowrap" }}>Recent route</span>
-        <span key={i} style={{ animation: "dp-float-up 0.5s ease-out", whiteSpace: "nowrap" }}>
-          <strong style={{ fontWeight: 500 }}>{r.from}</strong>
-          <span style={{ margin: "0 8px", opacity: 0.55 }}>→</span>
-          <strong style={{ fontWeight: 500 }}>{r.to}</strong>
+        <span key={i} style={{ animation: "dp-float-up 0.5s ease-out", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <img src={`https://flagcdn.com/w20/${r.from[0]}.png`} alt={r.from[1]} width={16} height={11} style={{ borderRadius: 1, verticalAlign: "middle" }} />
+          <strong style={{ fontWeight: 500 }}>{r.from[1]}</strong>
+          <span style={{ margin: "0 4px", opacity: 0.55 }}>→</span>
+          <img src={`https://flagcdn.com/w20/${r.to[0]}.png`} alt={r.to[1]} width={16} height={11} style={{ borderRadius: 1, verticalAlign: "middle" }} />
+          <strong style={{ fontWeight: 500 }}>{r.to[1]}</strong>
           <span style={{ margin: "0 10px", opacity: 0.4 }}>·</span>
           <span style={{ color: "var(--dp-accent)" }}>from {r.price}</span>
         </span>

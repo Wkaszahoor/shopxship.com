@@ -5,31 +5,46 @@ const { useState, useEffect, useRef, useMemo } = React;
 
 // ─── Country data ──────────────────────────────────────────────────────
 const FROM_COUNTRIES = [
-  { code: "US", name: "United States",  flag: "🇺🇸", x: 24, y: 38 },
-  { code: "UK", name: "United Kingdom", flag: "🇬🇧", x: 47, y: 30 },
-  { code: "DE", name: "Germany",        flag: "🇩🇪", x: 50, y: 32 },
-  { code: "CN", name: "China",          flag: "🇨🇳", x: 76, y: 42 },
-  { code: "TR", name: "Turkey",         flag: "🇹🇷", x: 56, y: 40 },
-  { code: "IT", name: "Italy",          flag: "🇮🇹", x: 51, y: 37 },
-  { code: "FR", name: "France",         flag: "🇫🇷", x: 48, y: 34 },
-  { code: "JP", name: "Japan",          flag: "🇯🇵", x: 84, y: 42 },
+  { code: "US", iso: "us", name: "United States",  x: 24, y: 38 },
+  { code: "UK", iso: "gb", name: "United Kingdom", x: 47, y: 30 },
+  { code: "DE", iso: "de", name: "Germany",        x: 50, y: 32 },
+  { code: "CN", iso: "cn", name: "China",          x: 76, y: 42 },
+  { code: "TR", iso: "tr", name: "Turkey",         x: 56, y: 40 },
+  { code: "IT", iso: "it", name: "Italy",          x: 51, y: 37 },
+  { code: "FR", iso: "fr", name: "France",         x: 48, y: 34 },
+  { code: "JP", iso: "jp", name: "Japan",          x: 84, y: 42 },
 ];
 
 const TO_COUNTRIES = [
-  { code: "NG", name: "Nigeria",         flag: "🇳🇬", x: 50, y: 56 },
-  { code: "KE", name: "Kenya",           flag: "🇰🇪", x: 57, y: 60 },
-  { code: "ZA", name: "South Africa",    flag: "🇿🇦", x: 54, y: 72 },
-  { code: "EG", name: "Egypt",           flag: "🇪🇬", x: 55, y: 44 },
-  { code: "AE", name: "UAE",             flag: "🇦🇪", x: 62, y: 47 },
-  { code: "SA", name: "Saudi Arabia",    flag: "🇸🇦", x: 60, y: 48 },
-  { code: "GH", name: "Ghana",           flag: "🇬🇭", x: 48, y: 56 },
-  { code: "MA", name: "Morocco",         flag: "🇲🇦", x: 47, y: 42 },
+  { code: "NG", iso: "ng", name: "Nigeria",      x: 50, y: 56 },
+  { code: "KE", iso: "ke", name: "Kenya",        x: 57, y: 60 },
+  { code: "ZA", iso: "za", name: "South Africa", x: 54, y: 72 },
+  { code: "EG", iso: "eg", name: "Egypt",        x: 55, y: 44 },
+  { code: "AE", iso: "ae", name: "UAE",          x: 62, y: 47 },
+  { code: "SA", iso: "sa", name: "Saudi Arabia", x: 60, y: 48 },
+  { code: "GH", iso: "gh", name: "Ghana",        x: 48, y: 56 },
+  { code: "MA", iso: "ma", name: "Morocco",      x: 47, y: 42 },
 ];
 
 const RETAILERS = [
   "Amazon", "eBay", "ASOS", "Nike", "SHEIN", "Target", "Walmart", "Best Buy",
   "Apple", "Sephora", "Macy's", "Costco",
 ];
+
+const RETAILER_LOGOS = {
+  "Amazon":   { src: "/images/retailers/amazon.svg",  bg: "#FF9900" },
+  "eBay":     { src: "/images/retailers/ebay.svg",    bg: "#E53238" },
+  "ASOS":     { src: "/images/retailers/asos.ico",    bg: "#2B3C4E" },
+  "Nike":     { src: "/images/retailers/nike.svg",    bg: "#111111" },
+  "SHEIN":    { src: "/images/retailers/shein.ico",   bg: "#FF3F6C" },
+  "Target":   { src: "/images/retailers/target.svg",  bg: "#CC0000" },
+  "Walmart":  { src: "/images/retailers/walmart.svg", bg: "#0071CE" },
+  "Best Buy": { src: "/images/retailers/bestbuy.ico", bg: "#003F8F" },
+  "Apple":    { src: "/images/retailers/apple.svg",   bg: "#555555" },
+  "Sephora":  { src: "/images/retailers/sephora.ico", bg: "#000000" },
+  "Macy's":   { src: "/images/retailers/macys.svg",   bg: "#E21A2C" },
+  "Costco":   { src: "/images/retailers/costco.ico",  bg: "#005DAA" },
+};
 
 // ─── Logo / wordmark ────────────────────────────────────────────────────
 function DPLogo({ size = 32 }) {
@@ -278,15 +293,20 @@ function DPOrbits({ accent = "var(--dp-accent)" }) {
         <circle cx="200" cy="200" r="32" fill="var(--dp-ink)" />
         <text x="200" y="206" textAnchor="middle" fill="var(--dp-paper)" fontSize="11" fontFamily="var(--dp-sans)" fontWeight="600">YOU</text>
         {[
-          { r: 60, dur: 8, label: "🇺🇸" },
-          { r: 110, dur: 14, label: "🇬🇧" },
-          { r: 160, dur: 22, label: "🇨🇳" },
-          { r: 200, dur: 30, label: "🇹🇷" },
+          { r: 60,  dur: 8,  iso: "us" },
+          { r: 110, dur: 14, iso: "gb" },
+          { r: 160, dur: 22, iso: "cn" },
+          { r: 200, dur: 30, iso: "tr" },
         ].map((o, i) => (
           <g key={i} style={{ transformOrigin: "200px 200px", animation: `dp-spin ${o.dur}s linear infinite ${i * 0.5}s` }}>
             <g transform={`translate(${200 + o.r} 200)`}>
-              <circle r="14" fill="var(--dp-card)" stroke={accent} strokeWidth="1.5" />
-              <text textAnchor="middle" y="5" fontSize="14">{o.label}</text>
+              <circle r="16" fill="var(--dp-card)" stroke={accent} strokeWidth="1.5" />
+              <foreignObject x="-12" y="-8" width="24" height="16">
+                <img xmlns="http://www.w3.org/1999/xhtml"
+                  src={`https://flagcdn.com/w40/${o.iso}.png`}
+                  style={{ width: "100%", height: "100%", borderRadius: "3px", objectFit: "cover", display: "block" }}
+                />
+              </foreignObject>
             </g>
           </g>
         ))}
@@ -302,14 +322,15 @@ function DPRetailerStrip({ items = RETAILERS }) {
     <div className="dp-marquee">
       <div className="dp-marquee-track">
         {doubled.map((r, i) => (
-          <span key={i} style={{
-            fontFamily: "var(--dp-display)",
-            fontSize: 32,
-            color: "var(--dp-ink)",
-            opacity: 0.55,
-            letterSpacing: "-0.02em",
-            whiteSpace: "nowrap",
-          }}>{r}</span>
+          <span key={i} style={{ display: "inline-flex", alignItems: "center", padding: "0 32px" }}>
+            <img
+              src={RETAILER_LOGOS[r] && RETAILER_LOGOS[r].src}
+              alt={r}
+              height={32}
+              style={{ objectFit: "contain", maxWidth: 110, opacity: 0.75 }}
+              loading="lazy"
+            />
+          </span>
         ))}
       </div>
     </div>
@@ -385,7 +406,7 @@ function CountryField({ label, list, value, onChange }) {
           textAlign: "left",
           color: "var(--dp-ink)",
         }}>
-        <span style={{ fontSize: 22 }}>{value.flag}</span>
+        <img src={`https://flagcdn.com/w20/${value.iso}.png`} alt={value.name} width={20} height={14} style={{ borderRadius: 2, objectFit: "cover", flexShrink: 0 }} />
         <span style={{ flex: 1, fontSize: 14 }}>{value.name}</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }}><path d="M6 9l6 6 6-6"/></svg>
       </button>
@@ -404,7 +425,7 @@ function CountryField({ label, list, value, onChange }) {
                 padding: "9px 10px", border: "none", background: c.code === value.code ? "var(--dp-paper-2)" : "transparent",
                 borderRadius: 6, textAlign: "left", fontSize: 14, color: "var(--dp-ink)",
               }}>
-              <span style={{ fontSize: 18 }}>{c.flag}</span>
+              <img src={`https://flagcdn.com/w20/${c.iso}.png`} alt={c.name} width={20} height={14} style={{ borderRadius: 2, objectFit: "cover", flexShrink: 0 }} />
               <span>{c.name}</span>
             </button>
           ))}
@@ -489,5 +510,5 @@ function DPFooter() {
 Object.assign(window, {
   DPLogo, DPNav, DPGlobe, DPGlobeBall, DPWorldMap, DPOrbits,
   DPRetailerStrip, DPCountryPicker, DPFaq, DPFooter,
-  FROM_COUNTRIES, TO_COUNTRIES, RETAILERS,
+  FROM_COUNTRIES, TO_COUNTRIES, RETAILERS, RETAILER_LOGOS,
 });
