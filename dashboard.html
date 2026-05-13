@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Queries — ShopxShip Admin</title>
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:#f4f4f1}
+#root{min-height:100vh}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.15);border-radius:2px}
+textarea,button,input,select{font-family:inherit}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadein{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" data-presets="env,react">
+
+/* -- Design tokens -- */
+var ACCENT = "#c8553d";
+var NAVY   = "#0d1b35";
+var PAPER  = "#fafaf7";
+
+var ADMIN_EMAIL    = "admin@shopxship.com";
+var ADMIN_PASSWORD = "Admin@2026";
+
+var QUERIES = [
+  { id:1, name:"Tunde A.",     iso:"ng", type:"new",        subject:"Consolidation  -  mix categories?",        preview:"Can I mix electronics and clothing?",          msg:"Hi, I wanted to ask about the consolidation service. Can I mix electronics and clothing in one shipment? I have orders from Amazon and H&M waiting at my US address.",      time:"2m ago",  status:"new"      },
+  { id:2, name:"Layla M.",     iso:"eg", type:"registered", subject:"Buy for Me  -  payment declined",           preview:"Card declined on the Nike checkout.",           msg:"I tried to place a buy-for-me order but my card was declined at checkout. The order was for shoes from Nike US. Can you help me complete the purchase?",                   time:"14m ago", status:"open"     },
+  { id:3, name:"David O.",     iso:"ke", type:"registered", subject:"Tracking not updating  -  #FWD-82931",     preview:"No movement in 3 days. Last: Amsterdam.",       msg:"My parcel tracking has not updated in 3 days. Order reference is #FWD-82931. The last status was in transit - Amsterdam hub. Is there a delay?",                          time:"1h ago",  status:"open"     },
+  { id:4, name:"Amara S.",     iso:"gh", type:"new",        subject:"Shipping estimate  -  Portland to Accra",  preview:"3 boxes (~12 kg) to Accra, Ghana?",             msg:"Hi! I want to ship approximately 3 medium-sized boxes (total ~12 kg) from your Portland, Oregon address to Accra, Ghana. Rough estimate and transit time?",              time:"3h ago",  status:"resolved" },
+  { id:5, name:"Yuki T.",      iso:"jp", type:"registered", subject:"Account verification pending",           preview:"Uploaded my ID yesterday, still unverified.",   msg:"I just signed up and my account still shows Unverified. I uploaded my government-issued ID photo yesterday morning. Is there anything else I need to provide?",            time:"5h ago",  status:"resolved" },
+  { id:6, name:"Mohammed K.",  iso:"sa", type:"new",        subject:"Prohibited items  -  perfume from France", preview:"Can I ship perfume to Saudi Arabia?",            msg:"I would like to ship some perfume and cosmetics from France to Saudi Arabia. Are these items permitted? Any special packaging or declaration requirements?",              time:"8h ago",  status:"new"      },
+  { id:7, name:"Chen W.",      iso:"cn", type:"registered", subject:"Repacking request  -  fragile items",      preview:"Can you add extra bubble wrap?",                 msg:"I have a shipment arriving at your UK address that contains glassware. I would like special repacking with extra bubble wrap and fragile stickers. What is the cost?",   time:"1d ago",  status:"open"     },
+];
+
+var STATUS = {
+  new:      { bg:"rgba(200,85,61,0.12)",  color:"#c8553d", label:"New"      },
+  open:     { bg:"rgba(29,78,216,0.12)",  color:"#1d4ed8", label:"Open"     },
+  resolved: { bg:"rgba(22,163,74,0.12)",  color:"#16a34a", label:"Resolved" },
+};
+
+var TYPE = {
+  new:        { bg:"#f0fdf4", color:"#16a34a", label:"New customer" },
+  registered: { bg:"#eff6ff", color:"#1d4ed8", label:"Registered"   },
+};
+
+/* -- Avatar -- */
+function Avatar(props) {
+  var iso = props.iso, name = props.name, size = props.size || 36;
+  var hue = ((name.charCodeAt(0) * 37) + (name.charCodeAt(1) * 13)) % 360;
+  var bg  = "hsl(" + hue + ",52%,58%)";
+  return (
+    <div style={{position:"relative",width:size,height:size,flexShrink:0}}>
+      <div style={{width:size,height:size,borderRadius:"50%",background:bg,display:"grid",placeItems:"center",fontSize:size*0.38,fontWeight:700,color:"#fff",userSelect:"none"}}>
+        {name[0]}
+      </div>
+      <img src={"https://flagcdn.com/w20/" + iso + ".png"} alt="" width={14} height={10}
+        style={{position:"absolute",bottom:-2,right:-2,borderRadius:2,boxShadow:"0 1px 3px rgba(0,0,0,0.3)",objectFit:"cover"}} />
+    </div>
+  );
+}
+
+/* -- Pill / TypeTag -- */
+function Pill(props) {
+  var s = STATUS[props.status];
+  return <span style={{fontSize:10,fontWeight:700,letterSpacing:"0.07em",textTransform:"uppercase",padding:"3px 8px",borderRadius:99,background:s.bg,color:s.color,whiteSpace:"nowrap"}}>{s.label}</span>;
+}
+function TypeTag(props) {
+  var t = TYPE[props.type];
+  return <span style={{fontSize:10,fontWeight:600,letterSpacing:"0.06em",textTransform:"uppercase",padding:"2px 8px",borderRadius:99,background:t.bg,color:t.color,whiteSpace:"nowrap"}}>{t.label}</span>;
+}
+
+/* -- Icons -- */
+function IconGrid()     { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>; }
+function IconMsg()      { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>; }
+function IconPkg()      { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12"/></svg>; }
+function IconUsers()    { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>; }
+function IconCog()      { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>; }
+function IconSend()     { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>; }
+function IconEye()      { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>; }
+function IconEyeOff()   { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>; }
+function IconSearch()   { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>; }
+function IconSpinner()  { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{animation:"spin 0.8s linear infinite"}}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>; }
+function IconLogout()   { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>; }
+
+/* ================================
+   LOGIN SCREEN
+================================ */
+function LoginScreen(props) {
+  var [email,    setEmail]    = React.useState("");
+  var [password, setPassword] = React.useState("");
+  var [showPw,   setShowPw]   = React.useState(false);
+  var [error,    setError]    = React.useState("");
+  var [loading,  setLoading]  = React.useState(false);
+
+  function submit(e) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    setTimeout(function() {
+      if (email.trim().toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+        props.onLogin();
+      } else {
+        setError("Invalid email or password. Please try again.");
+        setLoading(false);
+      }
+    }, 600);
+  }
+
+  return (
+    <div style={{minHeight:"100vh",display:"grid",placeItems:"center",background:"linear-gradient(135deg,#0d1b35 0%,#1a3460 60%,#1e3a5f 100%)"}}>
+      <div style={{position:"fixed",inset:0,backgroundImage:"radial-gradient(rgba(255,255,255,0.04) 1px,transparent 1px)",backgroundSize:"28px 28px",pointerEvents:"none"}} />
+
+      <div style={{width:"100%",maxWidth:400,padding:"0 24px",position:"relative",animation:"fadein 0.4s ease-out"}}>
+
+        <div style={{textAlign:"center",marginBottom:36}}>
+          <div style={{fontSize:28,fontWeight:800,color:"#fff",letterSpacing:"-0.04em"}}>
+            Shopx<span style={{color:ACCENT}}>Ship</span>
+          </div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:5,textTransform:"uppercase",letterSpacing:"0.18em"}}>Admin Portal</div>
+        </div>
+
+        <div style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:20,padding:"36px 32px",boxShadow:"0 32px 80px rgba(0,0,0,0.4)"}}>
+          <div style={{fontSize:20,fontWeight:700,color:"#fff",marginBottom:6}}>Welcome back</div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,0.45)",marginBottom:28}}>Sign in to manage customer queries</div>
+
+          <form onSubmit={submit} style={{display:"flex",flexDirection:"column",gap:16}}>
+            <div>
+              <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.55)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7}}>Email</div>
+              <input type="email" required value={email} onChange={function(e){setEmail(e.target.value)}}
+                placeholder="admin@shopxship.com" autoComplete="email"
+                style={{width:"100%",padding:"12px 14px",borderRadius:10,background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.12)",color:"#fff",fontSize:14,outline:"none"}}
+                onFocus={function(e){e.target.style.borderColor=ACCENT}}
+                onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,0.12)"}} />
+            </div>
+
+            <div>
+              <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.55)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7}}>Password</div>
+              <div style={{position:"relative"}}>
+                <input type={showPw ? "text" : "password"} required value={password}
+                  onChange={function(e){setPassword(e.target.value)}}
+                  placeholder="Enter your password" autoComplete="current-password"
+                  style={{width:"100%",padding:"12px 40px 12px 14px",borderRadius:10,background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.12)",color:"#fff",fontSize:14,outline:"none"}}
+                  onFocus={function(e){e.target.style.borderColor=ACCENT}}
+                  onBlur={function(e){e.target.style.borderColor="rgba(255,255,255,0.12)"}} />
+                <button type="button" onClick={function(){setShowPw(function(v){return !v;})}}
+                  style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.4)",display:"flex",padding:4}}>
+                  {showPw ? <IconEyeOff /> : <IconEye />}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div style={{padding:"10px 14px",background:"rgba(200,85,61,0.15)",border:"1px solid rgba(200,85,61,0.3)",borderRadius:8,fontSize:13,color:"#fca5a5"}}>
+                {error}
+              </div>
+            )}
+
+            <button type="submit" disabled={loading}
+              style={{marginTop:4,padding:"13px",borderRadius:10,border:"none",background:loading?"rgba(200,85,61,0.5)":ACCENT,color:"#fff",fontSize:14,fontWeight:700,cursor:loading?"default":"pointer",transition:"background 0.15s",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              {loading ? <React.Fragment><IconSpinner /> Signing in...</React.Fragment> : "Sign in to Admin"}
+            </button>
+          </form>
+
+          <div style={{marginTop:24,padding:"12px 14px",background:"rgba(255,255,255,0.04)",borderRadius:10,border:"1px solid rgba(255,255,255,0.07)"}}>
+            <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:7}}>Admin credentials</div>
+            <div style={{fontSize:12,fontFamily:'"JetBrains Mono",monospace',color:"rgba(255,255,255,0.5)",lineHeight:1.8}}>
+              <div>Email: <span style={{color:"rgba(255,255,255,0.85)"}}>admin@shopxship.com</span></div>
+              <div>Password: <span style={{color:"rgba(255,255,255,0.85)"}}>Admin@2026</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{textAlign:"center",marginTop:20,fontSize:12}}>
+          <a href="/" style={{color:"rgba(255,255,255,0.35)"}}>Back to ShopxShip.com</a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ================================
+   QUERIES DASHBOARD
+================================ */
+function QueriesDashboard() {
+  var [queries,  setQueries]  = React.useState(QUERIES);
+  var [selected, setSelected] = React.useState(1);
+  var [filter,   setFilter]   = React.useState("all");
+  var [search,   setSearch]   = React.useState("");
+  var [reply,    setReply]    = React.useState("");
+
+  var active   = queries.find(function(q){ return q.id === selected; });
+  var newCount = queries.filter(function(q){ return q.status === "new"; }).length;
+
+  var visible = queries.filter(function(q) {
+    if (filter !== "all" && q.status !== filter) return false;
+    if (search) {
+      var s = search.toLowerCase();
+      return q.name.toLowerCase().indexOf(s) >= 0 || q.subject.toLowerCase().indexOf(s) >= 0;
+    }
+    return true;
+  });
+
+  function markResolved(id) {
+    setQueries(function(qs){ return qs.map(function(q){ return q.id === id ? Object.assign({},q,{status:"resolved"}) : q; }); });
+  }
+
+  function sendReply() {
+    if (!reply.trim()) return;
+    markResolved(selected);
+    setReply("");
+  }
+
+  function selectQuery(id) {
+    setSelected(id);
+    setQueries(function(qs){ return qs.map(function(q){ return q.id === id && q.status === "new" ? Object.assign({},q,{status:"open"}) : q; }); });
+  }
+
+  var NAV_ITEMS = [
+    { id:"dashboard", label:"Dashboard", Icon:IconGrid,  active:false },
+    { id:"queries",   label:"Queries",   Icon:IconMsg,   active:true  },
+    { id:"orders",    label:"Orders",    Icon:IconPkg,   active:false },
+    { id:"customers", label:"Customers", Icon:IconUsers, active:false },
+    { id:"settings",  label:"Settings",  Icon:IconCog,   active:false },
+  ];
+
+  return (
+    <div style={{display:"flex",height:"100vh",overflow:"hidden",fontFamily:'"Plus Jakarta Sans",system-ui,sans-serif'}}>
+
+      {/* -- Sidebar -- */}
+      <div style={{width:272,background:NAVY,color:"#fff",display:"flex",flexDirection:"column",flexShrink:0,overflow:"hidden"}}>
+
+        {/* Brand */}
+        <div style={{padding:"20px 18px 16px",borderBottom:"1px solid rgba(255,255,255,0.07)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div>
+            <a href="/" style={{color:ACCENT,fontWeight:800,fontSize:17,letterSpacing:"-0.03em",textDecoration:"none"}}>ShopxShip</a>
+            <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",marginTop:2,textTransform:"uppercase",letterSpacing:"0.13em"}}>Admin</div>
+          </div>
+          {newCount > 0 && <div style={{width:22,height:22,borderRadius:"50%",background:ACCENT,display:"grid",placeItems:"center",fontSize:10,fontWeight:700}}>{newCount}</div>}
+        </div>
+
+        {/* Nav */}
+        <div style={{padding:"10px 10px 6px"}}>
+          {NAV_ITEMS.map(function(item) {
+            return (
+              <div key={item.id} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 11px",borderRadius:8,marginBottom:2,cursor:"pointer",fontSize:13,fontWeight:item.active?600:400,background:item.active?"rgba(200,85,61,0.14)":"transparent",color:item.active?ACCENT:"rgba(255,255,255,0.55)"}}>
+                <item.Icon />
+                <span style={{flex:1}}>{item.label}</span>
+                {item.id === "queries" && newCount > 0 && <span style={{background:ACCENT,color:"#fff",fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:99}}>{newCount}</span>}
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{height:1,background:"rgba(255,255,255,0.06)",margin:"2px 0"}} />
+
+        {/* Queries section label */}
+        <div style={{padding:"12px 18px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <span style={{fontSize:10,textTransform:"uppercase",letterSpacing:"0.16em",color:"rgba(255,255,255,0.3)",fontWeight:600}}>Queries</span>
+          <span style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>{visible.length} shown</span>
+        </div>
+
+        {/* Search */}
+        <div style={{padding:"0 10px 6px"}}>
+          <div style={{position:"relative"}}>
+            <div style={{position:"absolute",left:9,top:"50%",transform:"translateY(-50%)",pointerEvents:"none",display:"flex"}}>
+              <IconSearch />
+            </div>
+            <input value={search} onChange={function(e){setSearch(e.target.value)}}
+              placeholder="Search name or subject..."
+              style={{width:"100%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,padding:"7px 10px 7px 28px",color:"#fff",fontSize:12,outline:"none"}} />
+          </div>
+        </div>
+
+        {/* Filter tabs */}
+        <div style={{padding:"0 10px 10px",display:"flex",gap:4}}>
+          {["all","new","open","resolved"].map(function(f) {
+            return (
+              <button key={f} onClick={function(){setFilter(f);}}
+                style={{flex:1,padding:"5px 0",borderRadius:7,border:"none",cursor:"pointer",background:filter===f?"rgba(200,85,61,0.22)":"rgba(255,255,255,0.05)",color:filter===f?ACCENT:"rgba(255,255,255,0.38)",fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em"}}>
+                {f}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Query list */}
+        <div style={{flex:1,overflowY:"auto",padding:"0 8px 12px"}}>
+          {visible.length === 0 && <div style={{textAlign:"center",padding:"32px 16px",color:"rgba(255,255,255,0.25)",fontSize:12}}>No queries match</div>}
+          {visible.map(function(q) {
+            var sel = selected === q.id;
+            return (
+              <div key={q.id} onClick={function(){selectQuery(q.id);}}
+                style={{padding:"11px 10px",borderRadius:10,marginBottom:5,cursor:"pointer",background:sel?"rgba(200,85,61,0.15)":"rgba(255,255,255,0.04)",border:sel?"1px solid rgba(200,85,61,0.32)":"1px solid transparent",position:"relative"}}>
+                {q.status === "new" && <span style={{position:"absolute",top:10,right:10,width:7,height:7,borderRadius:"50%",background:ACCENT,display:"block"}} />}
+                <div style={{display:"flex",gap:9,alignItems:"flex-start"}}>
+                  <Avatar iso={q.iso} name={q.name} size={34} />
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",justifyContent:"space-between",gap:4,marginBottom:2}}>
+                      <span style={{fontSize:12,fontWeight:600,color:"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{q.name}</span>
+                      <span style={{fontSize:10,color:"rgba(255,255,255,0.28)",whiteSpace:"nowrap",flexShrink:0}}>{q.time}</span>
+                    </div>
+                    <div style={{fontSize:11,fontWeight:q.status==="new"?600:400,color:q.status==="new"?ACCENT:"rgba(255,255,255,0.5)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginBottom:2}}>{q.subject}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,0.25)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{q.preview}</div>
+                  </div>
+                </div>
+                <div style={{marginTop:7,display:"flex",alignItems:"center",gap:5}}>
+                  <TypeTag type={q.type} />
+                  <Pill status={q.status} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* User strip */}
+        <div style={{padding:"12px 14px",borderTop:"1px solid rgba(255,255,255,0.07)",display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:32,height:32,borderRadius:"50%",background:ACCENT,display:"grid",placeItems:"center",fontSize:13,fontWeight:700,color:"#fff",flexShrink:0}}>A</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:12,fontWeight:600,color:"#fff"}}>Admin</div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>admin@shopxship.com</div>
+          </div>
+          <a href="/" title="Back to site" style={{color:"rgba(255,255,255,0.35)",display:"flex"}}><IconLogout /></a>
+        </div>
+      </div>
+
+      {/* -- Main panel -- */}
+      <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:PAPER}}>
+        {active ? (
+          <React.Fragment>
+            {/* Header */}
+            <div style={{padding:"16px 28px",borderBottom:"1px solid #e5e5e1",background:"#fff",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",gap:16}}>
+              <div style={{display:"flex",alignItems:"center",gap:14,minWidth:0}}>
+                <Avatar iso={active.iso} name={active.name} size={42} />
+                <div style={{minWidth:0}}>
+                  <div style={{fontWeight:700,fontSize:16,color:NAVY}}>{active.name}</div>
+                  <div style={{fontSize:12,color:"#7a7a7a",marginTop:3,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                    <TypeTag type={active.type} />
+                    <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{active.subject}</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{display:"flex",gap:8,alignItems:"center",flexShrink:0}}>
+                <Pill status={active.status} />
+                {active.status !== "resolved" && (
+                  <button onClick={function(){markResolved(active.id);}}
+                    style={{padding:"7px 14px",borderRadius:8,border:"1px solid #e5e5e1",background:"#fff",cursor:"pointer",fontSize:12,fontWeight:600,color:"#16a34a"}}>
+                    Mark resolved
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Thread */}
+            <div style={{flex:1,overflowY:"auto",padding:"28px 28px 8px"}}>
+              <div style={{display:"flex",gap:12,marginBottom:24}}>
+                <Avatar iso={active.iso} name={active.name} size={38} />
+                <div style={{flex:1,maxWidth:640}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:7,flexWrap:"wrap"}}>
+                    <span style={{fontWeight:700,fontSize:14,color:NAVY}}>{active.name}</span>
+                    <TypeTag type={active.type} />
+                    <span style={{fontSize:11,color:"#aaa"}}>{active.time}</span>
+                  </div>
+                  <div style={{background:"#fff",border:"1px solid #e5e5e1",borderRadius:"4px 16px 16px 16px",padding:"14px 18px",fontSize:14,lineHeight:1.65,color:NAVY,boxShadow:"0 2px 10px rgba(0,0,0,0.05)"}}>
+                    {active.msg}
+                  </div>
+                </div>
+              </div>
+
+              {active.status === "resolved" && (
+                <div style={{display:"flex",justifyContent:"flex-end",gap:12,marginBottom:24}}>
+                  <div style={{maxWidth:520}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:7,justifyContent:"flex-end"}}>
+                      <span style={{fontSize:11,color:"#aaa"}}>Just now</span>
+                      <span style={{fontWeight:700,fontSize:14,color:NAVY}}>Support Team</span>
+                    </div>
+                    <div style={{background:ACCENT,borderRadius:"16px 4px 16px 16px",padding:"14px 18px",fontSize:14,lineHeight:1.65,color:"#fff",boxShadow:"0 4px 16px rgba(200,85,61,0.25)"}}>
+                      Thanks for reaching out! We have reviewed your query and taken care of it. Please do not hesitate to contact us again if you need further help.
+                    </div>
+                  </div>
+                  <div style={{width:38,height:38,borderRadius:"50%",background:ACCENT,display:"grid",placeItems:"center",flexShrink:0}}>
+                    <IconMsg />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Reply box */}
+            {active.status !== "resolved" ? (
+              <div style={{padding:"16px 24px 22px",borderTop:"1px solid #e5e5e1",background:"#fff",flexShrink:0}}>
+                <textarea value={reply} onChange={function(e){setReply(e.target.value);}}
+                  placeholder={"Reply to " + active.name + "..."} rows={3}
+                  style={{width:"100%",resize:"none",border:"1px solid #e5e5e1",borderRadius:12,padding:"12px 14px",fontSize:14,color:NAVY,background:PAPER,outline:"none",lineHeight:1.6}}
+                  onFocus={function(e){e.target.style.borderColor=ACCENT;}}
+                  onBlur={function(e){e.target.style.borderColor="#e5e5e1";}}
+                />
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:10,gap:10}}>
+                  <span style={{fontSize:11,color:"#aaa"}}>Replying as <strong style={{color:NAVY}}>support@shopxship.com</strong></span>
+                  <div style={{display:"flex",gap:8}}>
+                    <button onClick={function(){markResolved(active.id);}}
+                      style={{padding:"8px 14px",borderRadius:8,border:"1px solid #e5e5e1",background:"#fff",cursor:"pointer",fontSize:12,fontWeight:500,color:"#16a34a"}}>
+                      Mark resolved
+                    </button>
+                    <button onClick={sendReply} disabled={!reply.trim()}
+                      style={{padding:"8px 18px",borderRadius:8,border:"none",background:reply.trim()?ACCENT:"#e5e5e1",color:reply.trim()?"#fff":"#bbb",cursor:reply.trim()?"pointer":"default",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",gap:7}}>
+                      Send reply <IconSend />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div style={{padding:"14px 28px",borderTop:"1px solid #e5e5e1",background:"#f0fdf4",flexShrink:0,display:"flex",alignItems:"center",gap:10}}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span style={{fontSize:13,color:"#16a34a",fontWeight:600}}>This query has been resolved.</span>
+                <button onClick={function(){setQueries(function(qs){return qs.map(function(q){return q.id===active.id?Object.assign({},q,{status:"open"}):q;});});}}
+                  style={{marginLeft:"auto",padding:"5px 12px",borderRadius:7,border:"1px solid #bbf7d0",background:"#fff",cursor:"pointer",fontSize:11,fontWeight:500,color:"#16a34a"}}>
+                  Reopen
+                </button>
+              </div>
+            )}
+          </React.Fragment>
+        ) : (
+          <div style={{flex:1,display:"grid",placeItems:"center",color:"#ccc"}}>
+            <div style={{textAlign:"center"}}>
+              <IconMsg />
+              <div style={{fontSize:14,marginTop:12}}>Select a query to read and reply</div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* -- Root -- */
+function App() {
+  var [loggedIn, setLoggedIn] = React.useState(false);
+  if (!loggedIn) {
+    return <LoginScreen onLogin={function(){setLoggedIn(true);}} />;
+  }
+  return <QueriesDashboard />;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
+</body>
+</html>

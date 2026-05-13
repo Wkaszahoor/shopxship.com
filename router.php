@@ -1,5 +1,6 @@
 <?php
 $uri = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+$uri = ($uri !== '/') ? rtrim($uri, '/') : '/';
 
 // Rewrite /app/assets/* → /assets/* (SPA compiled bundles, no file duplication)
 if (strpos($uri, '/app/assets/') === 0) {
@@ -36,9 +37,16 @@ $marketingPages = [
     '/locations'    => 'locations.html',
     '/resources'    => 'resources.html',
     '/request'      => 'request.html',
+    '/dashboard'    => 'dashboard.html',
 ];
 if (isset($marketingPages[$uri])) {
     readfile(__DIR__ . '/' . $marketingPages[$uri]);
+    exit;
+}
+
+// Individual country location pages: /locations/{slug}
+if (preg_match('#^/locations/([a-z0-9-]+)$#', $uri)) {
+    readfile(__DIR__ . '/location.html');
     exit;
 }
 
