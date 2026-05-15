@@ -15,7 +15,7 @@
 //   </DesignCanvas>
 
 const DC = {
-  bg: '#f0eee9',
+  bg: '#1797e7',
   grid: 'rgba(0,0,0,0.06)',
   label: 'rgba(60,50,40,0.7)',
   title: 'rgba(40,30,20,0.85)',

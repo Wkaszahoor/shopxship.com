@@ -17,6 +17,7 @@ Options -Indexes
   RewriteRule ^locations/?$      locations.html     [L]
   RewriteRule ^resources/?$      resources.html     [L]
   RewriteRule ^request/?$        request.html       [L]
+  RewriteRule ^dashboard/?$      dashboard.html     [L]
 
   # ── 4. SPA exact routes → SPA shell ─────────────────────────────────────────
   RewriteRule ^signin/?$             app/index.html [L]

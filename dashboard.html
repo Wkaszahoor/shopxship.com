@@ -32,8 +32,7 @@ var ACCENT = "#c8553d";
 var NAVY   = "#0d1b35";
 var PAPER  = "#fafaf7";
 
-var ADMIN_EMAIL    = "admin@shopxship.com";
-var ADMIN_PASSWORD = "Admin@2026";
+var API_BASE = "https://shopxship.com/dparcel_apis/api";
 
 var QUERIES = [
   { id:1, name:"Tunde A.",     iso:"ng", type:"new",        subject:"Consolidation  -  mix categories?",        preview:"Can I mix electronics and clothing?",          msg:"Hi, I wanted to ask about the consolidation service. Can I mix electronics and clothing in one shipment? I have orders from Amazon and H&M waiting at my US address.",      time:"2m ago",  status:"new"      },
@@ -109,14 +108,28 @@ function LoginScreen(props) {
     e.preventDefault();
     setError("");
     setLoading(true);
-    setTimeout(function() {
-      if (email.trim().toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-        props.onLogin();
+    fetch(API_BASE + "/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ email: email.trim(), password: password })
+    })
+    .then(function(res) {
+      return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+    })
+    .then(function(result) {
+      if (result.ok && result.data.token) {
+        localStorage.setItem("sxs_token", result.data.token);
+        localStorage.setItem("sxs_user", JSON.stringify(result.data.user));
+        props.onLogin(result.data.token, result.data.user);
       } else {
-        setError("Invalid email or password. Please try again.");
+        setError(result.data.message || "Invalid email or password.");
         setLoading(false);
       }
-    }, 600);
+    })
+    .catch(function() {
+      setError("Cannot reach the server. Make sure the backend is running on port 8000.");
+      setLoading(false);
+    });
   }
 
   return (
@@ -175,10 +188,9 @@ function LoginScreen(props) {
           </form>
 
           <div style={{marginTop:24,padding:"12px 14px",background:"rgba(255,255,255,0.04)",borderRadius:10,border:"1px solid rgba(255,255,255,0.07)"}}>
-            <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:7}}>Admin credentials</div>
-            <div style={{fontSize:12,fontFamily:'"JetBrains Mono",monospace',color:"rgba(255,255,255,0.5)",lineHeight:1.8}}>
-              <div>Email: <span style={{color:"rgba(255,255,255,0.85)"}}>admin@shopxship.com</span></div>
-              <div>Password: <span style={{color:"rgba(255,255,255,0.85)"}}>Admin@2026</span></div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:7}}>API</div>
+            <div style={{fontSize:12,fontFamily:'"JetBrains Mono",monospace',color:"rgba(255,255,255,0.4)",lineHeight:1.8}}>
+              {API_BASE + "/login"}
             </div>
           </div>
         </div>
@@ -330,9 +342,9 @@ function QueriesDashboard() {
           <div style={{width:32,height:32,borderRadius:"50%",background:ACCENT,display:"grid",placeItems:"center",fontSize:13,fontWeight:700,color:"#fff",flexShrink:0}}>A</div>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontSize:12,fontWeight:600,color:"#fff"}}>Admin</div>
-            <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>admin@shopxship.com</div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{props.user ? props.user.email : "admin"}</div>
           </div>
-          <a href="/" title="Back to site" style={{color:"rgba(255,255,255,0.35)",display:"flex"}}><IconLogout /></a>
+          <button onClick={props.onLogout} title="Sign out" style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.35)",display:"flex",padding:4,borderRadius:6}}><IconLogout /></button>
         </div>
       </div>
 
@@ -446,11 +458,32 @@ function QueriesDashboard() {
 
 /* -- Root -- */
 function App() {
-  var [loggedIn, setLoggedIn] = React.useState(false);
-  if (!loggedIn) {
-    return <LoginScreen onLogin={function(){setLoggedIn(true);}} />;
+  var savedUser  = null;
+  var savedToken = null;
+  try {
+    savedToken = localStorage.getItem("sxs_token");
+    savedUser  = JSON.parse(localStorage.getItem("sxs_user"));
+  } catch(e) {}
+
+  var [loggedIn, setLoggedIn] = React.useState(!!(savedToken && savedUser));
+  var [user,     setUser]     = React.useState(savedUser);
+
+  function handleLogin(tok, usr) {
+    setUser(usr);
+    setLoggedIn(true);
   }
-  return <QueriesDashboard />;
+
+  function handleLogout() {
+    localStorage.removeItem("sxs_token");
+    localStorage.removeItem("sxs_user");
+    setLoggedIn(false);
+    setUser(null);
+  }
+
+  if (!loggedIn) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+  return <QueriesDashboard user={user} onLogout={handleLogout} />;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
