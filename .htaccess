@@ -15,6 +15,7 @@ Options -Indexes
   RewriteRule ^how-it-works/?$   how-it-works.html  [L]
   RewriteRule ^services/?$       services.html      [L]
   RewriteRule ^locations/?$      locations.html     [L]
+  RewriteRule ^locations/.+$    location.html      [L]
   RewriteRule ^resources/?$      resources.html     [L]
   RewriteRule ^request/?$        request.html       [L]
   RewriteRule ^dashboard/?$      dashboard.html     [L]
